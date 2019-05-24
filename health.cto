@@ -1,36 +1,24 @@
-/*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
-/**
- * Sample business network definition.
- */
 namespace org.health
 
-asset Prescription identified by presId {
-  o String presId
-  o String medicine
-  o String docterName
-  o String patientName
-  o String pickedupLoc
-  -->Docter docter
-  --> Pharmacy pharm
-  --> Patient patient
+enum Status{
+  o NONE
+  o PENDING
+  o FINISHED
+  
 }
 
-participant Docter identified by docterId {
-  o String docterId
-  o String docterName
+enum Test {
+  o bloodTest
+  o xRay
+  o NMRI
+  o HPV
+}
+
+
+participant Doctor identified by doctorId {
+  o String doctorId
+  o String doctorName
   o String department
   o String contact
 }
@@ -41,7 +29,6 @@ participant Patient identified by patientId {
   o String patientName
   o String address
   o String contact
-  o String history
 }
 
 participant Pharmacy identified by phId{
@@ -51,19 +38,110 @@ participant Pharmacy identified by phId{
 }
 
 
+participant InsuranceCompany identified by insuranceId{
+  o String insuranceId
+  o String name
+  
+}
+
+participant Lab identified by labId{
+  o String labId
+  o String labName
+}
+
+asset labRecord identified by labRecordId{
+  o String labRecordId
+  o Test test  
+  o Status status default='NONE'
+  --> Patient patient
+  --> Doctor doctor
+  --> Lab lab
+}
+
+asset EHR identified by eId{
+  o String eId
+  o String patientName
+  o String bloodType
+  o Double weight
+  o Double height
+  o String history
+  --> Patient patient
+  --> Doctor doctor
+  --> Prescription prescription
+  --> InsuranceCompany company
+}
+
+
+
+
+asset Prescription identified by presId {
+  o String presId
+  o String medicine
+  o String doctorName
+  o String patientName
+  o String pickedupLoc
+  --> Doctor doctor
+  --> Patient patient optional
+  --> Pharmacy pharmacy optional
+}
+
+
+
 transaction PlacePrescription{
-    --> Docter docter
+  --> Doctor doctor
   o String placeId 
   o String medicine
-  o String docterName
+  o String doctorName
   o String patientName
 }
 
 transaction pickupConfirm{
-  o String pickId
   o String patientName
-  o String presId
   --> Prescription prescription
   --> Patient patient
+  --> Pharmacy pharmacy
 }
+
+
+
+transaction issueTest{  // create new asset labrecord
+  o String labRecordId
+  o Test test
+  o Status status
+  --> Patient patient
+  --> Doctor doctor
+  --> Lab lab
+}
+
+event issueTestEvent {
+  -->labRecord labrecord
+}
+
+
+
+transaction createEHR{
+  o String eId
+  o String patientName
+  o String bloodType
+  o Double weight
+  o Double height
+  o String history
+  --> Patient patient
+  --> Doctor doctor
+  --> Prescription prescription
+  --> InsuranceCompany company
+}
+
+event createEHRevent{
+ --> EHR ehr
+}
+
+transaction updateRecord{ //update lab record
+  --> labRecord labrecord
+  o Status status
+}
+
+
+
+
   
